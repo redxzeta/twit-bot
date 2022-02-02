@@ -1,0 +1,30 @@
+{
+  "name": "twit-bot",
+  "version": "1.0.0",
+  "description": "twit bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redxzeta/twit-bot.git"
+  },
+  "author": "redxzeta",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/redxzeta/twit-bot/issues"
+  },
+  "homepage": "https://github.com/redxzeta/twit-bot#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "dotenv": "^15.0.0",
+    "node-fetch": "^3.2.0",
+    "twitter-api-v2": "^1.10.0"
+  }
+}
