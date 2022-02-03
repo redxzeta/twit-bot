@@ -7,7 +7,7 @@ import {
   SOLUTION,
 } from "./config.js";
 
-const MIN = 10;
+const MIN = 11;
 
 const MAX = 39;
 
@@ -29,7 +29,7 @@ const funStuff = async () => {
 
   await Promise.all(
     tweets.data.data.map(async (tweet, index) => {
-      const coolDown = getRandomArbitrary() * 1000 * index;
+      const coolDown = getRandomArbitrary() * 1000 + index * 500;
       await delayedFetch(() => tweetLike(tweet.id), MINUTE + coolDown);
 
       await delayedFetch(
@@ -39,7 +39,7 @@ const funStuff = async () => {
             tweet.id,
             tweet.public_metrics.retweet_count
           ),
-        MINUTE + coolDown + coolDown
+        MINUTE + coolDown
       );
     })
   );
@@ -55,7 +55,6 @@ const tweetRetweet = async (author_id, id, count) => {
   const userRetweetCount =
     randomNum % 2 === 0 ? randomNum + RETWEET_COUNT : randomNum - RETWEET_COUNT;
 
-  console.log(`userCount: ${count} randomNum: ${randomNum} `);
   if (!AVOID_LIST.has(author_id) && count > userRetweetCount) {
     await userClient.v2.retweet(CURRENT_USER_ID, id);
     console.log(`Retweeted tweet ${id}`);
@@ -63,6 +62,7 @@ const tweetRetweet = async (author_id, id, count) => {
     console.log(`${author_id} retweet avoided`);
   }
 };
+
 function delayedFetch(tweetAction, delay) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
