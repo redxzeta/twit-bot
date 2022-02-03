@@ -1,38 +1,24 @@
-import "dotenv/config";
-import { TwitterApi } from "twitter-api-v2";
-import { AVOID_LIST } from "./funList.js";
-
-const TWITTER_LIST_ID = process.env.LISTID;
-
-const CURRENT_USER_ID = process.env.CURRENT_USER;
-
-const INTERVAL = Number(process.env.INTERVAL);
-
-const SOLUTION = Number(process.env.SOLUTION);
+import {
+  AVOID_LIST,
+  TWITTER_LIST_ID,
+  userClient,
+  CURRENT_USER_ID,
+  INTERVAL,
+  SOLUTION,
+} from "./config.js";
 
 const MIN = 10;
 
 const MAX = 39;
 
-const MINUTE = 60000;
+const MINUTE = 30000;
+
+const RETWEET_COUNT = 11;
 
 let runTimes = 0;
 
-function delay(time) {
-  return new Promise(function (resolve) {
-    setTimeout(resolve, time);
-  });
-}
-function getRandomArbitrary() {
-  return Math.random() * (MAX - MIN) + MIN;
-}
-
-const userClient = new TwitterApi({
-  appKey: process.env.CONSUMER_KEY,
-  appSecret: process.env.CONSUMER_SECRET,
-  accessToken: process.env.ACCESS_TOKEN_KEY,
-  accessSecret: process.env.ACCESS_TOKEN_SECRET,
-});
+const getRandomArbitrary = (minNum = MIN, maxNum = MAX) =>
+  Math.floor(Math.random() * (maxNum - minNum) + minNum);
 
 const funStuff = async () => {
   const tweets = await userClient.v2.listTweets(TWITTER_LIST_ID, {
@@ -42,27 +28,49 @@ const funStuff = async () => {
   });
 
   await Promise.all(
-    tweets.data.data.map(async (tweet) => {
-      await userClient.v2.like(CURRENT_USER_ID, tweet.id);
+    tweets.data.data.map(async (tweet, index) => {
+      const coolDown = getRandomArbitrary() * 1000 * index;
+      await delayedFetch(() => tweetLike(tweet.id), MINUTE + coolDown);
 
-      const delaySeconds = getRandomArbitrary() * 1000;
-      await delay(delaySeconds);
-      if (
-        !AVOID_LIST.has(tweet.author_id) &&
-        tweet.public_metrics.retweet_count > 5
-      ) {
-        await userClient.v2.retweet(CURRENT_USER_ID, tweet.id);
-        console.log(`Liked and retweeted tweet ${tweet.id}`);
-      } else {
-        console.log(`${tweet.author_id} retweet avoided`);
-      }
-      const delayMinute = MINUTE + delaySeconds * 2;
-
-      await delay(delayMinute);
+      await delayedFetch(
+        () =>
+          tweetRetweet(
+            tweet.author_id,
+            tweet.id,
+            tweet.public_metrics.retweet_count
+          ),
+        MINUTE + coolDown + coolDown
+      );
     })
   );
 };
 console.log("running the fun stuff 🤠");
+
+const tweetLike = async (id) => {
+  console.log(`Liked Tweet ${id}`);
+  await userClient.v2.like(CURRENT_USER_ID, id);
+};
+const tweetRetweet = async (author_id, id, count) => {
+  const randomNum = getRandomArbitrary(0, 5);
+  const userRetweetCount =
+    randomNum % 2 === 0 ? randomNum + RETWEET_COUNT : randomNum - RETWEET_COUNT;
+
+  console.log(`userCount: ${count} randomNum: ${randomNum} `);
+  if (!AVOID_LIST.has(author_id) && count > userRetweetCount) {
+    await userClient.v2.retweet(CURRENT_USER_ID, id);
+    console.log(`Retweeted tweet ${id}`);
+  } else {
+    console.log(`${author_id} retweet avoided`);
+  }
+};
+function delayedFetch(tweetAction, delay) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve(tweetAction());
+    }, delay);
+  });
+}
+
 setInterval(async () => {
   await funStuff();
   runTimes += 1;
