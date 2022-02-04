@@ -53,7 +53,7 @@ const tweetLike = async (id) => {
 const tweetRetweet = async (author_id, id, count) => {
   const randomNum = getRandomArbitrary(0, 5);
   const userRetweetCount =
-    randomNum % 2 === 0 ? randomNum + RETWEET_COUNT : randomNum - RETWEET_COUNT;
+    randomNum % 2 === 0 ? randomNum + RETWEET_COUNT : RETWEET_COUNT - randomNum;
 
   if (!AVOID_LIST.has(author_id) && count > userRetweetCount) {
     await userClient.v2.retweet(CURRENT_USER_ID, id);
