@@ -25,6 +25,7 @@
   "dependencies": {
     "dotenv": "^15.0.0",
     "node-fetch": "^3.2.0",
+    "tmi.js": "^1.8.5",
     "twitter-api-v2": "^1.10.0"
   }
 }
